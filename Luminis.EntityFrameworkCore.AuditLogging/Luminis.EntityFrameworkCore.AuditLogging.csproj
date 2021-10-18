@@ -1,0 +1,24 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <LangVersion>9</LangVersion>
+    <Nullable>enable</Nullable>
+    <Version>3.1.0</Version>
+    <Authors>Luminis Arnhem</Authors>
+    <Company>Luminis Arnhem</Company>
+
+    <AssemblyName>Luminis.EntityFrameworkCore.AuditLogging</AssemblyName>
+    <RootNamespace>Luminis.EntityFrameworkCore.AuditLogging</RootNamespace>
+    <Description>Package for AuditLogging with Entity Framework Core</Description>
+    <PackageProjectUrl>https://github.com/Luminis-Arnhem/EntityFrameworkCore.AuditLogging/</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/Luminis-Arnhem/EntityFrameworkCore.AuditLogging/</RepositoryUrl>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="3.1.20" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Relational" Version="3.1.20" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
+  </ItemGroup>
+
+</Project>
