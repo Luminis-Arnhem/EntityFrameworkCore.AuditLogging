@@ -46,6 +46,13 @@ stages:
         versioningScheme: 'byEnvVar'
         versionEnvVar: 'GitVersion.NuGetVersionV2'
 
+    - task: DotNetCoreCLI@2
+      displayName: DotnetCore Test
+      inputs:
+          command: test
+          projects: '**/*Tests/*.csproj'
+          arguments: '--collect:"Code Coverage"'
+
     - publish: $(Build.ArtifactStagingDirectory)
       artifact: $(artifactName)
                                                 
