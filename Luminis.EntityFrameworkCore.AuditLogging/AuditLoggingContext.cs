@@ -12,12 +12,13 @@ namespace Luminis.EntityFrameworkCore.AuditLogging
 {
     public class AuditLoggingContext : DbContext
     {
-        private readonly Func<string?> _getUserId;
+        private readonly IUserIdProvider _userIdProvider;
 
-        public AuditLoggingContext(Func<string> getUserId) => _getUserId = getUserId;
+        public AuditLoggingContext(IUserIdProvider userIdProvider) 
+            => _userIdProvider = userIdProvider;
 
-        public AuditLoggingContext(DbContextOptions options, Func<string?> getUserId) : base(options) 
-            => _getUserId = getUserId;
+        public AuditLoggingContext(DbContextOptions options, IUserIdProvider userIdProvider) : base(options) 
+            => _userIdProvider = userIdProvider;
 
         public DbSet<AuditLog> Audits { get; set; } = default!;
 
@@ -56,7 +57,7 @@ namespace Luminis.EntityFrameworkCore.AuditLogging
                     continue;
                 }
 
-                var auditEntry = new AuditEntry(entry, transactionId, _getUserId())
+                var auditEntry = new AuditEntry(entry, transactionId, _userIdProvider.GetUserId())
                 {
                     TableName = entry.Metadata.GetTableName()
                 };

@@ -1,4 +1,4 @@
-﻿namespace Luminis.EntityFrameworkCore.AuditLogging.Tests.TestBed
+﻿namespace Luminis.EntityFrameworkCore.AuditLogging
 {
     public interface IUserIdProvider
     {

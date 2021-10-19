@@ -6,7 +6,7 @@ namespace Luminis.EntityFrameworkCore.AuditLogging.Tests.TestBed
 {
     internal class TestDataContext : AuditLoggingContext
     {
-        public TestDataContext(DbContextOptions options, IUserIdProvider userIdProvider) : base(options, () => userIdProvider.GetUserId())
+        public TestDataContext(DbContextOptions options, IUserIdProvider userIdProvider) : base(options, userIdProvider)
         {
         }
 
