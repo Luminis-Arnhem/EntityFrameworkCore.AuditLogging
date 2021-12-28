@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Linq;
 using System.Threading.Tasks;
+using Luminis.EntityFrameworkCore.AuditLogging.Exceptions;
 using Luminis.EntityFrameworkCore.AuditLogging.Tests.TestBed;
 using Luminis.EntityFrameworkCore.AuditLogging.Tests.TestBed.Models;
 using Microsoft.EntityFrameworkCore;
@@ -28,7 +29,6 @@ namespace Luminis.EntityFrameworkCore.AuditLogging.Tests
             // Arrange
             var dbContext = PrepareDataContext();
 
-
             // Act
             dbContext.NotAuditedEntities.Add(new NotAuditedEntity { Name = "John Doe" });
             await dbContext.SaveChangesAsync();
@@ -36,6 +36,22 @@ namespace Luminis.EntityFrameworkCore.AuditLogging.Tests
             // Assert
             dbContext.Audits.Count().ShouldBe(0);
         }
+
+
+        [Fact]
+        public async Task AddingAnEntityWithShadowPropertiesShouldThrowAnException()
+        {
+            // Arrange
+            var dbContext = PrepareDataContext();
+
+
+            // Act
+            dbContext.AuditLogWithShadowProperties.Add(new AuditLogWithShadowProperties { OtherEntity = new NotAuditedEntity() });
+            // Assert
+            var ex = await Assert.ThrowsAsync<AuditLoggingException>(async () => await dbContext.SaveChangesAsync());
+            Assert.Equal("Cannot audit with shadow properties. Please supply a property from OtherEntityId", ex.Message);
+        }
+        
 
         [Fact]
         public async Task AddingAnAuditedEntityShouldAddAnItemToTheAuditLog()

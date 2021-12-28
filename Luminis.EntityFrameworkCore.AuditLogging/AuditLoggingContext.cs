@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Luminis.EntityFramework.AuditLogging.Attributes;
+using Luminis.EntityFrameworkCore.AuditLogging.Exceptions;
 using Luminis.EntityFrameworkCore.AuditLogging.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
@@ -150,9 +151,15 @@ namespace Luminis.EntityFrameworkCore.AuditLogging
         }
 
         private static bool ShouldAudit(EntityEntry entityEntry) 
-            => entityEntry.Entity.GetType().GetCustomAttributes(typeof(AuditAttribute), true).Length > 0;
+            => entityEntry.Entity.GetType().GetCustomAttributes(typeof(AuditAttribute), false).Length > 0;
 
-        private static bool ShoudAudit(PropertyEntry property) 
-            => !property.Metadata.PropertyInfo.GetCustomAttributes(typeof(AuditIgnoreAttribute), false).Any();
+        private static bool ShoudAudit(PropertyEntry property)
+        {
+            if (property.Metadata.IsShadowProperty())
+            {
+                throw new AuditLoggingException($"Cannot audit with shadow properties. Please supply a property for {property.Metadata.Name}");
+            }
+            return !property.Metadata.PropertyInfo.GetCustomAttributes(typeof(AuditIgnoreAttribute), false).Any();
+        }
     }
 }

@@ -10,8 +10,8 @@ namespace Luminis.EntityFrameworkCore.AuditLogging.Tests.TestBed
         {
         }
 
-
         public DbSet<NotAuditedEntity> NotAuditedEntities { get; set; } = default!;
         public DbSet<AuditedEntity> AuditedEntities { get; set; } = default!;
+        public DbSet<AuditLogWithShadowProperties> AuditLogWithShadowProperties { get; set; } = default!;
     }
 }
