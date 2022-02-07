@@ -4,8 +4,7 @@
 # https://aka.ms/yaml
 
 trigger:
-  - master
-  - develop
+  - main
 
 variables:
   artifactName: Luminis.EntityFrameworkCore.AuditLogging
@@ -37,11 +36,24 @@ stages:
     - task: NuGetCommand@2
       inputs:
         restoreSolution: '$(solution)'
-                          
+                  
     - task: DotNetCoreCLI@2
+      displayName: 'dotnet restore'
+      inputs:
+        command: restore
+        projects: "**/*.sln"
+
+    - task: DotNetCoreCLI@2
+      displayName: 'dotnet build'
+      inputs:
+        projects: '**/*.csproj'
+        arguments: ' --no-restore --configuration $(BuildConfiguration) /p:AssemblyVersion=$(GitVersion.MajorMinorPatch) /p:Version=$(GitVersion.SemVer)'
+
+    - task: DotNetCoreCLI@2
+      displayName: 'dotnet pack'
       inputs:
         command: 'pack'
-        packagesToPack: '**/*.csproj'
+        packagesToPack: '**/Luminis.EntityFrameworkCore.AuditLogging.csproj'
         configuration: '$(buildConfiguration)'
         versioningScheme: 'byEnvVar'
         versionEnvVar: 'GitVersion.NuGetVersionV2'
@@ -55,4 +67,3 @@ stages:
 
     - publish: $(Build.ArtifactStagingDirectory)
       artifact: $(artifactName)
-                                                
