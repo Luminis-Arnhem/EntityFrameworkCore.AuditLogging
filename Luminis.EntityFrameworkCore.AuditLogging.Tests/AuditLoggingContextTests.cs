@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Linq;
 using System.Threading.Tasks;
+using Luminis.EntityFrameworkCore.AuditLogging.Exceptions;
 using Luminis.EntityFrameworkCore.AuditLogging.Tests.TestBed;
 using Luminis.EntityFrameworkCore.AuditLogging.Tests.TestBed.Models;
 using Microsoft.EntityFrameworkCore;
@@ -28,7 +29,6 @@ namespace Luminis.EntityFrameworkCore.AuditLogging.Tests
             // Arrange
             var dbContext = PrepareDataContext();
 
-
             // Act
             dbContext.NotAuditedEntities.Add(new NotAuditedEntity { Name = "John Doe" });
             await dbContext.SaveChangesAsync();
@@ -36,6 +36,22 @@ namespace Luminis.EntityFrameworkCore.AuditLogging.Tests
             // Assert
             dbContext.Audits.Count().ShouldBe(0);
         }
+
+
+        [Fact]
+        public async Task AddingAnEntityWithShadowPropertiesShouldThrowAnException()
+        {
+            // Arrange
+            var dbContext = PrepareDataContext();
+
+
+            // Act
+            dbContext.AuditLogWithShadowProperties.Add(new AuditLogWithShadowProperties { OtherEntity = new NotAuditedEntity() });
+            // Assert
+            var ex = await Assert.ThrowsAsync<AuditLoggingException>(async () => await dbContext.SaveChangesAsync());
+            Assert.Equal("Cannot audit with shadow properties. Please supply a property for OtherEntityId", ex.Message);
+        }
+        
 
         [Fact]
         public async Task AddingAnAuditedEntityShouldAddAnItemToTheAuditLog()
@@ -115,6 +131,66 @@ namespace Luminis.EntityFrameworkCore.AuditLogging.Tests
         }
 
         [Fact]
+        public async Task UpdatingAnAuditedEntityShouldAddAnItemToTheAuditLogWithAllProperties()
+        {
+            // Arrange
+            var dbContext = PrepareDataContext(true);
+
+            var existing = new AuditedEntity { Name = "John Doe", IgnoredField = "Ignored", NotChangingField = "OriginalValue" };
+            dbContext.AuditedEntities.Add(existing);
+            await dbContext.SaveChangesAsync();
+
+            // Act
+            var auditedEntity = dbContext.AuditedEntities.First();
+            auditedEntity.Name = "Jane Doe";
+            await dbContext.SaveChangesAsync();
+
+            // Assert
+            var auditLogEntity = dbContext.Audits.LastOrDefault();
+            auditLogEntity.ShouldNotBeNull();
+            auditLogEntity.TableName.ShouldBe("AuditedEntity");
+            auditLogEntity.DateTime.Date.ShouldBe(DateTimeOffset.UtcNow.Date);
+            auditLogEntity.KeyValues.ShouldBe($"{{\"Id\":{auditedEntity.Id}}}");
+            auditLogEntity.OldValues.ShouldBe("{\"Name\":\"John Doe\",\"NotChangingField\":\"OriginalValue\"}");
+            auditLogEntity.NewValues.ShouldBe("{\"Name\":\"Jane Doe\",\"NotChangingField\":\"OriginalValue\"}");
+            auditLogEntity.TransactionId.ShouldNotBeNull();
+            auditLogEntity.TransactionId.ShouldNotBe(Guid.Empty);
+            auditLogEntity.UserId.ShouldBe("john.doe@email.com");
+            auditLogEntity.Action.ShouldBe(Action.Modified);
+        }
+
+        [Fact]
+        public async Task UpdatingAnIgnoredFieldInAnAuditedEntityShouldAddAnItemToTheAuditLogWithAllProperties()
+        {
+            // Arrange
+            var dbContext = PrepareDataContext(true);
+
+            var existing = new AuditedEntity { Name = "John Doe", IgnoredField = "Ignored", NotChangingField = "OriginalValue" };
+            dbContext.AuditedEntities.Add(existing);
+            await dbContext.SaveChangesAsync();
+            dbContext.Audits.Remove(dbContext.Audits.First());
+            await dbContext.SaveChangesAsync();
+
+            // Act
+            var auditedEntity = dbContext.AuditedEntities.First();
+            auditedEntity.IgnoredField = "IgnoredAgain";
+            await dbContext.SaveChangesAsync();
+
+            // Assert
+            var auditLogEntity = dbContext.Audits.LastOrDefault();
+            auditLogEntity.ShouldNotBeNull();
+            auditLogEntity.TableName.ShouldBe("AuditedEntity");
+            auditLogEntity.DateTime.Date.ShouldBe(DateTimeOffset.UtcNow.Date);
+            auditLogEntity.KeyValues.ShouldBe($"{{\"Id\":{auditedEntity.Id}}}");
+            auditLogEntity.OldValues.ShouldBe("{\"Name\":\"John Doe\",\"NotChangingField\":\"OriginalValue\"}");
+            auditLogEntity.NewValues.ShouldBe("{\"Name\":\"John Doe\",\"NotChangingField\":\"OriginalValue\"}");
+            auditLogEntity.TransactionId.ShouldNotBeNull();
+            auditLogEntity.TransactionId.ShouldNotBe(Guid.Empty);
+            auditLogEntity.UserId.ShouldBe("john.doe@email.com");
+            auditLogEntity.Action.ShouldBe(Action.Modified);
+        }
+
+        [Fact]
         public async Task DeletingAnAuditedEntityShouldAddAnItemToTheAuditLog()
         {
             // Arrange
@@ -143,7 +219,7 @@ namespace Luminis.EntityFrameworkCore.AuditLogging.Tests
             auditLogEntity.Action.ShouldBe(Action.Deleted);
         }
 
-        private static TestDataContext PrepareDataContext()
+        private static TestDataContext PrepareDataContext(bool persistAllProperties = false)
         {
             var moqUserIdProvider = new Mock<IUserIdProvider>();
             moqUserIdProvider.Setup(u => u.GetUserId()).Returns("john.doe@email.com");
@@ -152,7 +228,7 @@ namespace Luminis.EntityFrameworkCore.AuditLogging.Tests
                 .UseInMemoryDatabase(Guid.NewGuid().ToString())
                 .Options;
 
-            return new TestDataContext(dbOptions, moqUserIdProvider.Object);
+            return new TestDataContext(dbOptions, moqUserIdProvider.Object, persistAllProperties);
         }
     }
 }

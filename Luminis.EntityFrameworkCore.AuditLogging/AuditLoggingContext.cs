@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Luminis.EntityFramework.AuditLogging.Attributes;
+using Luminis.EntityFrameworkCore.AuditLogging.Exceptions;
 using Luminis.EntityFrameworkCore.AuditLogging.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
@@ -13,12 +14,19 @@ namespace Luminis.EntityFrameworkCore.AuditLogging
     public class AuditLoggingContext : DbContext
     {
         private readonly IUserIdProvider _userIdProvider;
+        private readonly bool _persistAllProperties;
 
-        public AuditLoggingContext(IUserIdProvider userIdProvider) 
-            => _userIdProvider = userIdProvider;
+        public AuditLoggingContext(IUserIdProvider userIdProvider, bool persistAllProperties = false)
+        {
+            _userIdProvider = userIdProvider;
+            _persistAllProperties = persistAllProperties;
+        }
 
-        public AuditLoggingContext(DbContextOptions options, IUserIdProvider userIdProvider) : base(options) 
-            => _userIdProvider = userIdProvider;
+        public AuditLoggingContext(DbContextOptions options, IUserIdProvider userIdProvider, bool persistAllProperties = false) : base(options)
+        {
+            _userIdProvider = userIdProvider;
+            _persistAllProperties = persistAllProperties;
+        }
 
         public DbSet<AuditLog> Audits { get; set; } = default!;
 
@@ -32,7 +40,10 @@ namespace Luminis.EntityFrameworkCore.AuditLogging
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-            modelBuilder.Entity<AuditLog>().Property(a => a.Action).HasConversion<string>();
+            modelBuilder.Entity<AuditLog>()
+                .Property(a => a.Action)
+                .HasConversion<string>()
+                .HasMaxLength(32);
             base.OnModelCreating(modelBuilder);
         }
 
@@ -59,7 +70,7 @@ namespace Luminis.EntityFrameworkCore.AuditLogging
 
                 var auditEntry = new AuditEntry(entry, transactionId, _userIdProvider.GetUserId())
                 {
-                    TableName = entry.Metadata.GetTableName()
+                    TableName = entry!.Metadata.GetTableName()
                 };
                 auditEntries.Add(auditEntry);
 
@@ -94,7 +105,7 @@ namespace Luminis.EntityFrameworkCore.AuditLogging
                             break;
 
                         case EntityState.Modified:
-                            if (property.IsModified)
+                            if (_persistAllProperties || property.IsModified)
                             {
                                 auditEntry.OldValues[propertyName] = property.OriginalValue;
                                 auditEntry.NewValues[propertyName] = property.CurrentValue;
@@ -150,9 +161,15 @@ namespace Luminis.EntityFrameworkCore.AuditLogging
         }
 
         private static bool ShouldAudit(EntityEntry entityEntry) 
-            => entityEntry.Entity.GetType().GetCustomAttributes(typeof(AuditAttribute), true).Length > 0;
+            => entityEntry.Entity.GetType().GetCustomAttributes(typeof(AuditAttribute), false).Length > 0;
 
-        private static bool ShoudAudit(PropertyEntry property) 
-            => !property.Metadata.PropertyInfo.GetCustomAttributes(typeof(AuditIgnoreAttribute), false).Any();
+        private static bool ShoudAudit(PropertyEntry property)
+        {
+            if (property.Metadata.IsShadowProperty())
+            {
+                throw new AuditLoggingException($"Cannot audit with shadow properties. Please supply a property for {property.Metadata.Name}");
+            }
+            return !property.Metadata.PropertyInfo.GetCustomAttributes(typeof(AuditIgnoreAttribute), false).Any();
+        }
     }
 }

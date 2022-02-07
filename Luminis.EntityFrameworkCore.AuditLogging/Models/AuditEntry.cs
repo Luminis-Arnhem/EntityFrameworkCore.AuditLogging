@@ -18,13 +18,21 @@ namespace Luminis.EntityFrameworkCore.AuditLogging.Models
         }
 
         public string? UserId { get; }
+
         public Action Action { get; }
+
         public Guid TransactionId { get; }
+
         public EntityEntry Entry { get; }
+
         public string TableName { get; set; } = default!;
+
         public Dictionary<string, object> KeyValues { get; } = new Dictionary<string, object>();
+
         public Dictionary<string, object> OldValues { get; } = new Dictionary<string, object>();
+
         public Dictionary<string, object> NewValues { get; } = new Dictionary<string, object>();
+
         public List<PropertyEntry> TemporaryProperties { get; } = new List<PropertyEntry>();
 
         public bool HasTemporaryProperties => TemporaryProperties.Any();

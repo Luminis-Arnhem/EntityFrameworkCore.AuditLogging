@@ -4,6 +4,7 @@ namespace Luminis.EntityFrameworkCore.AuditLogging.Tests.TestBed.Models
 {
     public class NotAuditedEntity
     {
+        [Key]
         public int Id { get; set; }
 
         /// <summary>

@@ -1,10 +1,10 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>netstandard2.0</TargetFramework>
+    <TargetFrameworks>netstandard2.0;net6.0</TargetFrameworks>
     <LangVersion>9</LangVersion>
     <Nullable>enable</Nullable>
-    <Version>3.1.0</Version>
+    <Version>4.0.1</Version>
     <Authors>Luminis Arnhem</Authors>
     <Company>Luminis Arnhem</Company>
 
@@ -15,10 +15,17 @@
     <RepositoryUrl>https://github.com/Luminis-Arnhem/EntityFrameworkCore.AuditLogging/</RepositoryUrl>
   </PropertyGroup>
 
-  <ItemGroup>
+  <ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.0'">
     <PackageReference Include="Microsoft.EntityFrameworkCore" Version="3.1.20" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Relational" Version="3.1.20" />
-    <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
   </ItemGroup>
 
+  <ItemGroup Condition="'$(TargetFramework)' == 'net6.0'">
+    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="6.0.1" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Relational" Version="6.0.1" />
+  </ItemGroup>
+ 
+  <ItemGroup>
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
+  </ItemGroup>
 </Project>
