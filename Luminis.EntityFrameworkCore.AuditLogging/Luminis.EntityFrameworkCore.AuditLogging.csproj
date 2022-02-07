@@ -7,12 +7,16 @@
     <Version>4.0.1</Version>
     <Authors>Luminis Arnhem</Authors>
     <Company>Luminis Arnhem</Company>
+    <Copyright>Copyright (c) Luminis Arnhem 2020-2022</Copyright>
 
     <AssemblyName>Luminis.EntityFrameworkCore.AuditLogging</AssemblyName>
     <RootNamespace>Luminis.EntityFrameworkCore.AuditLogging</RootNamespace>
     <Description>Package for AuditLogging with Entity Framework Core</Description>
     <PackageProjectUrl>https://github.com/Luminis-Arnhem/EntityFrameworkCore.AuditLogging/</PackageProjectUrl>
     <RepositoryUrl>https://github.com/Luminis-Arnhem/EntityFrameworkCore.AuditLogging/</RepositoryUrl>
+    <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
+    <PackageLicenseFile>D:\git\LumArn\Luminis.EntityFrameworkCore.AuditLogging\LICENSE.TXT</PackageLicenseFile>
+    <PackageRequireLicenseAcceptance>True</PackageRequireLicenseAcceptance>
   </PropertyGroup>
 
   <ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.0'">
