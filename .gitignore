@@ -383,3 +383,4 @@ testem.log
 Thumbs.db
 
 /Luminis.AzureActiveDirectory/Luminis.AzureActiveDirectory.xml
+*.lutconfig

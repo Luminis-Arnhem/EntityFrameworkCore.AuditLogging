@@ -1,11 +1,10 @@
-﻿namespace Luminis.EntityFrameworkCore.AuditLogging
+﻿namespace Luminis.EntityFrameworkCore.AuditLogging.Models;
+
+public enum Action
 {
-    public enum Action
-    {
-        Detached,
-        Unchanged,
-        Deleted,
-        Modified,
-        Added,
-    }
+    Detached,
+    Unchanged,
+    Deleted,
+    Modified,
+    Added,
 }

@@ -23,20 +23,20 @@ stages:
       solution: '**/*.sln'
 
     steps:
-    - task: gitversion/setup@0
+    - task: UseDotNet@2
+      displayName: 'Use .NET Core SDK 10.0'
+      inputs:
+        version: 10.x
+        includePreviewVersions: true
+
+    - task: gitversion/setup@1
       displayName: Install GitVersion
       inputs:
         versionSpec: 5.x
 
-    - task: gitversion/execute@0
+    - task: gitversion/execute@1
       displayName: Determine Version
-                                 
-    - task: NuGetToolInstaller@1
-                                  
-    - task: NuGetCommand@2
-      inputs:
-        restoreSolution: '$(solution)'
-                  
+                                                                   
     - task: DotNetCoreCLI@2
       displayName: 'dotnet restore'
       inputs:
