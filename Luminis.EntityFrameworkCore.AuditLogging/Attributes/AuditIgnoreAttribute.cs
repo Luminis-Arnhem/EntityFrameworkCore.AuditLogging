@@ -1,9 +1,8 @@
 ﻿using System;
 
-namespace Luminis.EntityFramework.AuditLogging.Attributes
+namespace Luminis.EntityFrameworkCore.AuditLogging.Attributes;
+
+[AttributeUsage(AttributeTargets.Field | AttributeTargets.Property)]
+public class AuditIgnoreAttribute : Attribute
 {
-    [AttributeUsage(AttributeTargets.Field | AttributeTargets.Property)]
-    public class AuditIgnoreAttribute : Attribute
-    {
-    }
 }

@@ -1,7 +1,6 @@
-﻿namespace Luminis.EntityFrameworkCore.AuditLogging
+﻿namespace Luminis.EntityFrameworkCore.AuditLogging;
+
+public interface IUserIdProvider
 {
-    public interface IUserIdProvider
-    {
-        string? GetUserId();
-    }
+    string? GetUserId();
 }
